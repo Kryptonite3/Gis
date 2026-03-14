@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring GI Gunung Sahari</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            color: #00f2ff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        .dashboard {
+            text-align: center;
+            background: rgba(0, 15, 30, 0.8);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00f2ff;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.3), inset 0 0 15px rgba(0, 242, 255, 0.1);
+            backdrop-filter: blur(15px);
+            max-width: 90%;
+            z-index: 1;
+        }
+
+        .logo-pln {
+            width: 70px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px #fbff00);
+        }
+
+        h1 {
+            font-size: 2rem;
+            letter-spacing: 4px;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00f2ff;
+        }
+
+        .location-sub {
+            font-size: 0.85rem;
+            color: #00f2ff;
+            opacity: 0.7;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        /* Styling Tanggal */
+        .date-display {
+            font-size: 1.5rem;
+            color: #fbff00; /* Warna kuning PLN agar kontras */
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: -10px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(251, 255, 0, 0.5);
+        }
+
+        /* Jam Digital */
+        .clock-wrapper {
+            font-size: 6.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 10px 0;
+            padding: 10px 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            display: inline-block;
+            box-shadow: inset 0 0 30px #000;
+            text-shadow: 0 0 20px #00f2ff, 0 0 40px #00f2ff;
+        }
+
+        .footer-text {
+            margin-top: 25px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #ffffff;
+            border-top: 1px solid rgba(0, 242, 255, 0.3);
+            padding-top: 20px;
+        }
+
+        .highlight {
+            color: #fbff00;
+            font-weight: bold;
+        }
+
+        .danger {
+            color: #ff4d4d;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .blink {
+            animation: blinker 2s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="dashboard">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Logo_PLN.svg" alt="PLN Logo" class="logo-pln">
+        
+        <h1 class="blink">Gardu Induk Gunung Sahari</h1>
+        <div class="location-sub">SYSTEM MONITORING UNIT - JAKARTA</div>
+
+        <div id="tanggalLive" class="date-display">MEMUAT TANGGAL...</div>
+        
+        <div class="clock-wrapper" id="jamLive">00:00:00</div>
+
+        <div class="footer-text">
+            Catat dan input <span class="highlight">Penyulang</span>. <br>
+            Jika ada gangguan maka <span class="danger">LAPORKAN DSS BAGIAN BARAT</span>, <br>
+            melakukan pembebasan tegangan atau penormalan.
+        </div>
+    </div>
+
+    <script>
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Format Jam
+            const timeOptions = {
+                timeZone: 'Asia/Jakarta',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            const timeString = new Intl.DateTimeFormat('id-ID', timeOptions).format(now);
+            document.getElementById('jamLive').textContent = timeString.replace(/\./g, ':');
+
+            // Format Tanggal
+            const dateOptions = {
+                timeZone: 'Asia/Jakarta',
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            };
+            const dateString = new Intl.DateTimeFormat('id-ID', dateOptions).format(now);
+            document.getElementById('tanggalLive').textContent = dateString;
+        }
+
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // --- ANIMASI BACKGROUND (Sama seperti sebelumnya) ---
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const particleCount = 70;
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speedX = (Math.random() - 0.5) * 1.2;
+                this.speedY = (Math.random() - 0.5) * 1.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(0, 242, 255, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 242, 255, ${1 - distance/150})`;
+                        ctx.lineWidth = 0.6;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+            createParticles();
+        });
+
+        initCanvas();
+        createParticles();
+        animate();
+    </script>
+</body>
+</html>
